@@ -6,15 +6,14 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
-class ProductController extends AbstractController
+class CustomerController extends AbstractController
 {
-    // Recover all products
-    #[Route('/api/products', name: 'app_product', methods: ['GET'])]
+    #[Route('/customer', name: 'app_customer')]
     public function index(): JsonResponse
     {
         return $this->json([
             'message' => 'Welcome to your new controller!',
-            'path' => 'src/Controller/ProductController.php',
+            'path' => 'src/Controller/CustomerController.php',
         ]);
     }
 }
