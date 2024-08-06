@@ -2,63 +2,53 @@
 
 namespace App\Controller;
 
+use App\Repository\CustomerRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Serializer\SerializerInterface;
+use OpenApi\Attributes as OA;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class CustomerController extends AbstractController
 {
-    // Retreive all customers /*** ADMIN ***/
-    #[Route('/api/customers', name: 'app_customer', methods: ['GET'])]
-    public function indexAll(): JsonResponse
+    // Retreive all customers /* ADMIN */
+    #[Route('/api/customer', name: 'app_customer', methods: ['GET'])]
+    #[IsGranted('ROLE_ADMIN')]
+    #[OA\Get(
+        summary: "Voir la liste des clients",
+        description: "Disponible uniquement pour le rôle ['ROLE_ADMIN']"
+    )]
+    #[OA\Response(
+        response: 200,
+        description: "Voici la liste des clients",
+        content: new OA\JsonContent(
+            type: "object",
+            properties: [
+                new OA\Property(property: "id", type: "integer", example: 1),
+                new OA\Property(property: "name", type: "string", example: "Nom du client")
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 400,
+        description: "Invalid input"
+    )]
+    #[OA\Tag(name: "Clients")]
+    public function indexAll(
+        CustomerRepository $repository,
+        SerializerInterface $serializer
+        ): JsonResponse
     {
-        return new JsonResponse([
-            'message' => 'This route will soon allow you to retrieve the list of all customers !',
-            'path' => 'src/Controller/CustomerController.php',
-        ]);
-    }
+        $customers = $repository->FindAll();
+        $jsonCustomers = $serializer->serialize($customers, 'json', ['groups' => 'getCustomers']);
 
-
-    // Retreive the details of a customer /*** ADMIN ***/
-    #[Route('/api/customer/{id}', name: 'app_customer.index', methods: ['GET'])]
-    public function index(): JsonResponse
-    {
-        return new JsonResponse([
-            'message' => 'This route will soon allow you to retrieve the details of a customer !',
-            'path' => 'src/Controller/CustomerController.php',
-        ]);
-    }
-
-
-    // Create a new customer /*** ADMIN ***/
-    #[Route('/api/customers/{id}', name: 'app_customer.create', methods: ['POST'])]
-    public function create(): JsonResponse
-    {
-        return new JsonResponse([
-            'message' => 'This route will soon allow a customer to be created !',
-            'path' => 'src/Controller/CustomerController.php',
-        ]);
-    }
-
-
-    // Modify a customer /*** ADMIN ***/
-    #[Route('/api/customers/{id}', name: 'app_customer.edit', methods: ['PUT'])]
-    public function edit(): JsonResponse
-    {
-        return new JsonResponse([
-            'message' => 'This route will soon allow a customer to be modified !',
-            'path' => 'src/Controller/CustomerController.php',
-        ]);
-    }
-
-
-    // Delete a customer /*** ADMIN ***/
-    #[Route('/api/customers/{id}', name: 'app_customer.delete', methods: ['DELETE'])]
-    public function delete(): JsonResponse
-    {
-        return new JsonResponse([
-            'message' => 'This route will soon allow a customer to be removed !',
-            'path' => 'src/Controller/CustomerController.php',
-        ]);
+        return new JsonResponse(
+            $jsonCustomers,
+            Response::HTTP_OK,
+            [],
+            true
+        );
     }
 }
