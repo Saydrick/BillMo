@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Customer;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -36,7 +37,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     /**
     * @return User[] Returns an array of User objects
     */
-    public function findAllByCustomer($customerID): array
+    public function findAllByCustomer(Customer $customerID): array
     {
         return $this->createQueryBuilder('u')
             ->andWhere('u.customer = :val')
@@ -47,7 +48,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         ;
     }
 
-    public function findOneByID($userID): User
+    public function findOneByID(User $userID): User
     {
         return $this->createQueryBuilder('u')
             ->andWhere('u.id = :val')
