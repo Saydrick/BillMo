@@ -1,12 +1,13 @@
-# BillMo API - Créez votre premier blog en PHP
+# BillMo API - Créez un web service exposant une API
 
 Dans le cadre du projet n°7 de la formation Développeur d'application - PHP/Symfony de OpenClassrooms,
-ce site web est un blog sur lequel on retrouve une page de présentation du développeur ainsi que de nombreux articles.
+ce site web est une API proposant un catalogue de produits BillMo.
 
 
 ## PRÉREQUIS
 
-- PHP version 7.0 ou supérieur
+- PHP version 8.2 ou supérieur
+- Symfony 7.1 ou supérieur
 - Apache server version 2.4 ou supérieur
 - Composer
 - Base de données MYSQL
@@ -14,55 +15,55 @@ ce site web est un blog sur lequel on retrouve une page de présentation du dév
 
 ## INSTALLATION
 
-- Cloner le projet sur GitHub [Lien vers le projet GitHub](https://github.com/Saydrick/blog) et l’ajouter dans le dossier des projets de votre environnement de serveur apache local avec la commande :
+- Cloner le projet sur GitHub [Lien vers le projet GitHub](https://github.com/Saydrick/BillMo) et l’ajouter dans le dossier des projets de votre environnement de serveur apache local avec la commande :
 ```
-git clone https://github.com/Saydrick/blog.git
+git clone https://github.com/Saydrick/BillMo.git
 ```
-- Dans le dossier `blog\config\` mettre à jour le fichier `ConnectDb.php` avec les identifiants de connexion à votre base de données.
-- Créer une base de données en local nommée "blog" et importer le fichier "blog.sql" qui se trouve à la racine du projet.
+- Créer une base de données en local nommée "billmo" et importer le fichier "billmo.sql" qui se trouve à la racine du projet.
+- Mettre à jour le fichier `.env` avec les identifiants de connexion à votre base de données.
 - Exécuter `composer install` à la racine du projet pour installer les bibliothèques du projet.
 
 ## UTILISATION
 
+Toutes les routes de l'API peuvent être utilisées et testées directement depuis la documentation interactive disponible à l'URL suivante :
+[Lien vers la documentation de l'API](http://localhost:8000/api/doc)
+
 ### Connexion
-Se connecter en visiteur ou administrateur sur le site :
+Se connecter sur le site en recupérant un token via la route '/api/login_check' avec les identifiants suivants :
 
-Visiteur :
-- identifiant : user@user.com
-- mot de passe : 1234
+{
+  "username": "admin@billmoapi.com",
+  "password": "password"
+}
 
-Administrateur : 
-- identifiant : admin@admin.com
-- mot de passe : 1234
-
-L'envoie de mails depuis le formulaire de contact de la page d'accueil est actuellement intercepté par la platforme MailTrap.
-Pour tester l'envoie de mails, il faut modifier les informations de connexion dans `contactController.php` avec vos identifiants.
+puis ajouter le token dans la zone 'Authorize' en préfixant le token de 'bearer '.
 
 ### Fonctionnalités
 Les principales fonctionnalités du projet accessibles suivant le type d'utilisateur connecté sont :
 
 Tous types d'utilisateurs (connectés ou non) :
-- Inscription / connexion / déconnexion du site.
-- Lecture des articles et des commentaires associés.
+- Récupération de token d'authentification.
 
 Utilisateur connecté :
-- Rédaction d'un article.
-- Ajout de commentaires sur un article.
-- Modification et/ou suppression d'un article (si l'utilisateur est l'auteur de l'article).
-- Modification et/ou suppression d'un commentaire (si l'utilisateur est l'auteur du commentaire).
+- Voir le catalogue de produit.
+- Voir le détail d'un produit.
+- Voir les utilisateurs liés à un client.
+- Voir le détail d'un utilisateur.
+- Ajouter un nouvel utilisateur.
+- Supprimer un utilisateur.
 
 Administrateur :
-- Validation ou refus des commentaires des utilisateurs.
-
+- Voir la liste des clients.
 
 ## BIBLIOTHÈQUES UTILISÉES
 
+Doctrine
+Nelmio
+JWT
 Twig
-Altorouter
-PHPMailer
 
-## BADGE CODACY
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/79308f038ec545a696711eb8374611af)](https://app.codacy.com/gh/Saydrick/blog/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+## BADGE SYMFONY INSIGHT
+[![SymfonyInsight](https://insight.symfony.com/projects/5df3a384-b697-4fcf-809b-3192cb740602/small.svg)](https://insight.symfony.com/projects/5df3a384-b697-4fcf-809b-3192cb740602)
 
 ## AUTEUR
 
