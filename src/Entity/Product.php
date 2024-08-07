@@ -6,6 +6,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\ProductRepository;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 class Product
@@ -24,6 +25,13 @@ class Product
 
     #[ORM\Column(length: 255)]
     #[Groups(["getProducts"])]
+    #[Assert\NotBlank(message: "Le nom du produit est obligatoire.")]
+    #[Assert\Length(
+        min:1,
+        max:255,
+        minMessage: "La tailles du nom doit faire au moins {{ value }} caractère.",
+        maxMessage: "La taille du nom ne doit pas dépasser {{ value }} caractères."
+        )]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -32,6 +40,8 @@ class Product
 
     #[ORM\Column]
     #[Groups(["getProducts"])]
+    #[Assert\NotBlank(message: "Le prix du produit doit être renseigné.")]
+    #[Assert\PositiveOrZero(message: "Le prix du produit doit être positif.")]
     private ?float $price = null;
 
     public function getId(): ?int

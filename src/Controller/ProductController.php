@@ -3,24 +3,24 @@
 namespace App\Controller;
 
 use App\Entity\Product;
+use OpenApi\Attributes as OA;
 use App\Repository\ProductRepository;
+use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
-use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use OpenApi\Attributes as OA;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class ProductController extends AbstractController
 {
     // Retreive all products /* USER */
-    #[Route('/api/products', name: 'app_product', methods: ['GET'])]
+    #[Route('/api/v1/products', name: 'app_product', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
     #[OA\Get(
-        summary: "Voir le détail d'un produit"
+        summary: "Voir la liste des produits"
     )]
     #[OA\Response(
         response: 200,
@@ -45,15 +45,35 @@ class ProductController extends AbstractController
         SerializerInterface $serializer,
         TagAwareCacheInterface $cache
         ): JsonResponse
-    {
+    {        
         $idCache = "Products";
 
         $jsonProducts = $cache->get($idCache, function (ItemInterface $item) use ($repository, $serializer) {
-            echo("L'élément n'est pas en cache !\n");
             $item->tag("productsCache");
 
             $products = $repository->findAll();
-            return $serializer->serialize($products, 'json', ['groups' => 'getProducts']);
+
+            $product_data = [];
+
+            foreach($products as $product)
+            {    
+                $product_id = $product->getId();
+                $product_name = $product->getName();
+                $product_description = $product->getDescription();
+                $product_price = $product->getPrice();
+
+                $product_links = array('self' => array('href' => '/api/v1/product/' . $product_id));
+
+                $product_data[] = array(
+                    'id' => $product_id,
+                    'name' => $product_name,
+                    'description' => $product_description,
+                    'price' => $product_price,
+                    '_links' => $product_links,
+                );
+            }
+    
+            return $serializer->serialize($product_data, 'json', ['groups' => 'getProducts']);
         });
 
         return new JsonResponse(
@@ -66,26 +86,17 @@ class ProductController extends AbstractController
 
 
     // Retreive the details of a product /* USER */
-    #[Route('/api/product/{id}', name: 'app_product.index', methods: ['GET'])]
+    #[Route('/api/v1/product/{id}', name: 'app_product.index', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
     #[OA\Get(
         summary: "Voir le détail d'un produit"
     )]
     #[OA\Parameter(
-        name: "product",
+        name: "id",
         in: "path",
         required: true,
         schema: new OA\Schema(type: "integer"),
         description: "ID du produit"
-    )]
-    #[OA\RequestBody(
-        required: true,
-        content: new OA\JsonContent(
-            type: "object",
-            properties: [
-                new OA\Property(property: "productID", type: "int", example: 1)
-            ]
-        )
     )]
     #[OA\Response(
         response: 200,
