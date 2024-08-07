@@ -5,10 +5,11 @@ namespace App\EventSubscriber;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 
 class ExceptionSubscriber implements EventSubscriberInterface
 {
-    public function onKernelException($event): void
+    public function onKernelException(ExceptionEvent $event): void
     {
         $exception = $event->getThrowable();
 

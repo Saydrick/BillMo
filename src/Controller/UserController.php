@@ -170,8 +170,6 @@ class UserController extends AbstractController
     ): JsonResponse {
         $data = json_decode($request->getContent(), true);
 
-        // dd($data);
-
         $user = new User();
         $user->setEmail($data['email']);
         $user->setPassword($this->userPasswordHasher->hashPassword($user, $data['password']));
