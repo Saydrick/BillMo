@@ -14,18 +14,18 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 class AppFixtures extends Fixture
 {
     public function __construct(private UserPasswordHasherInterface $userPasswordHasher)
-    {        
+    {
     }
 
     public function load(ObjectManager $manager): void
     {
         // Generates admin customer & user
-        $billmo_customer = new Customer;
+        $billmo_customer = new Customer();
         $billmo_customer->setName('BillMo');
 
         $manager->persist($billmo_customer);
 
-        $admin = new User;
+        $admin = new User();
         $admin->setEmail('admin@billmoapi.com');
         $admin->setPassword($this->userPasswordHasher->hashPassword($admin, 'password'));
         $admin->setRoles(['ROLE_ADMIN']);
@@ -35,7 +35,7 @@ class AppFixtures extends Fixture
 
         // Generates fictitious customers
         for ($i = 0; $i < 3; $i++) {
-            $customer = new Customer;
+            $customer = new Customer();
             $number_customer = $i + 1;
 
             $customer->setName('Client ' . $number_customer);
@@ -44,7 +44,7 @@ class AppFixtures extends Fixture
 
             // Generates fictitious users linked to the customer
             for ($j = 0; $j < 5; $j++) {
-                $user = new User;
+                $user = new User();
                 $number_user = $j + 1;
 
                 $user->setEmail('user' . $number_user . '.customer' . $number_customer . '@billmoapi.com');
@@ -58,7 +58,7 @@ class AppFixtures extends Fixture
 
         // Generates fictitious products
         for ($i = 0; $i < 20; $i++) {
-            $product = new Product;
+            $product = new Product();
             $number = $i + 1;
             $timezone = new DateTimeZone('Europe/Paris');
 

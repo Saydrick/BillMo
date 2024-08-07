@@ -23,9 +23,9 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 class UserController extends AbstractController
 {
     public function __construct(private UserPasswordHasherInterface $userPasswordHasher)
-    {        
+    {
     }
-    
+
     // Retreive the details of a user /* USER */
     #[Route('/api/v1/customer/{customer}/users/{user}', name: 'app_user.index', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
@@ -73,32 +73,39 @@ class UserController extends AbstractController
         UserRepository $repository,
         SerializerInterface $serializer,
         TagAwareCacheInterface $cache
-        ): JsonResponse
-    {
+    ): JsonResponse {
         $idCache = "getUser-" . $user->getId();
-                
-        $jsonUser = $cache->get($idCache, function (ItemInterface $item) use ($repository, $customer, $user, $serializer) {
-            $item->tag("userCache");
 
-            $user = $repository->findOneByID($user);
+        $jsonUser = $cache->get(
+            $idCache,
+            function (ItemInterface $item) use ($repository, $customer, $user, $serializer
+            ) {
+                $item->tag("userCache");
 
-            $user_id = $user->getId();
-            $user_email = $user->getEmail();
-            $user_roles = $user->getRoles();
-            $user_customer = $user->getCustomer();
+                $user = $repository->findOneByID($user);
 
-            $user_links = array('delete' => array('href' => '/api/v1/customer/' . $user_customer->getId() . '/users/' . $user_id));
+                $user_id = $user->getId();
+                $user_email = $user->getEmail();
+                $user_roles = $user->getRoles();
+                $user_customer = $user->getCustomer();
 
-            $user_data = array(
+                $user_links = array(
+                'delete' => array(
+                    'href' => '/api/v1/customer/' . $user_customer->getId() . '/users/' . $user_id
+                )
+                );
+
+                $user_data = array(
                 'id' => $user_id,
                 'email' => $user_email,
                 'roles' => $user_roles,
                 'customer' => $user_customer,
                 '_links' => $user_links,
-            );
-    
-            return $serializer->serialize($user_data, 'json', ['groups' => 'getUsers']);
-        });
+                );
+
+                return $serializer->serialize($user_data, 'json', ['groups' => 'getUsers']);
+            }
+        );
 
         return new JsonResponse(
             $jsonUser,
@@ -160,8 +167,7 @@ class UserController extends AbstractController
         EntityManagerInterface $em,
         ValidatorInterface $validator,
         UrlGeneratorInterface $urlGenerator
-        ): JsonResponse 
-    {
+    ): JsonResponse {
         $data = json_decode($request->getContent(), true);
 
         // dd($data);
@@ -185,7 +191,11 @@ class UserController extends AbstractController
         $user_roles = $user->getRoles();
         $user_customer = $user->getCustomer();
 
-        $user_links = array('self' => array('href' => '/api/v1/customer/' . $user_customer->getId() . '/users/' . $user_id));
+        $user_links = array(
+            'self' => array(
+                'href' => '/api/v1/customer/' . $user_customer->getId() . '/users/' . $user_id
+            )
+        );
 
         $user_data = array(
             'id' => $user_id,
@@ -197,7 +207,12 @@ class UserController extends AbstractController
 
         $jsonUser = $serializer->serialize($user_data, 'json', ['groups' => 'getUsers']);
 
-        $locatation = $urlGenerator->generate('app_user.index', ['customer' => $user->getCustomer()->getId(), 'user' => $user->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
+        $locatation = $urlGenerator->generate(
+            'app_user.index',
+            ['customer' => $user->getCustomer()->getId(),
+            'user' => $user->getId()],
+            UrlGeneratorInterface::ABSOLUTE_URL
+        );
 
         return new JsonResponse($jsonUser, JsonResponse::HTTP_CREATED, ["location" => $locatation], true);
     }
@@ -236,8 +251,7 @@ class UserController extends AbstractController
     public function delete(
         User $user,
         EntityManagerInterface $em
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $em->remove($user);
         $em->flush();
 

@@ -72,10 +72,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     /**
      * Return field used for authentification
-     * 
+     *
      * @return string
      */
-    public function getUsername(): string 
+    public function getUsername(): string
     {
         return $this->getUserIdentifier();
     }
