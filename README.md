@@ -57,10 +57,10 @@ Administrateur :
 
 ## BIBLIOTHÈQUES UTILISÉES
 
-Doctrine
-Nelmio
-JWT
-Twig
+- Doctrine
+- Nelmio
+- JWT
+- Twig
 
 ## BADGE SYMFONY INSIGHT
 [![SymfonyInsight](https://insight.symfony.com/projects/5df3a384-b697-4fcf-809b-3192cb740602/small.svg)](https://insight.symfony.com/projects/5df3a384-b697-4fcf-809b-3192cb740602)
