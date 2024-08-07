@@ -1,0 +1,9 @@
+{
+    "lang": "fr-FR",
+    "name": "BillMo API",
+    "short_name": "BillMo",
+    "description": "API donnant accès au catalogue BillMo.",
+    "start_url": "http://127.0.0.1:8000/api/doc",
+    "orientation": "landscape",
+    "display": "fullscreen"
+}
