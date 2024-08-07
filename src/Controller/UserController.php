@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Entity\Customer;
 use OpenApi\Attributes as OA;
 use App\Repository\UserRepository;
+use Symfony\Component\Serializer\SerializerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,12 +14,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
-use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class UserController extends AbstractController
 {
@@ -26,69 +26,8 @@ class UserController extends AbstractController
     {        
     }
     
-    // Retreive all users linked to a customer /* USER */
-    #[Route('/api/customer/{customer}/users', name: 'app_user', methods: ['GET'])]
-    #[IsGranted('ROLE_USER')]
-    #[OA\Get(
-        summary: "Voir la liste des utilisateurs liés à un client"
-    )]
-    #[OA\RequestBody(
-        required: true,
-        content: new OA\JsonContent(
-            type: "object",
-            properties: [
-                new OA\Property(property: "customer", type: "int", example: 1)
-            ]
-        )
-    )]
-    #[OA\Parameter(
-        name: "customer",
-        in: "path",
-        required: true,
-        schema: new OA\Schema(type: "integer"),
-        description: "ID du client"
-    )]
-    #[OA\Response(
-        response: 200,
-        description: "Voici la liste des utilisateurs liés au client",
-        content: new OA\JsonContent(
-            type: "object",
-            properties: [
-                new OA\Property(property: "id", type: "integer", example: 1),
-                new OA\Property(property: "email", type: "string", example: "john.doe@example.com"),
-                new OA\Property(property: "role", type: "string", example: "['ROLE_USER']"),
-                new OA\Property(property: "customer", type: "object", properties: [
-                    new OA\Property(property: "id", type: "integer", example: 1),
-                    new OA\Property(property: "name", type: "string", example: "Nom du client")
-                ])
-            ]
-        )
-    )]
-    #[OA\Response(
-        response: 400,
-        description: "Invalid input"
-    )]
-    #[OA\Tag(name: "Clients")]
-    public function indexAll(
-        Customer $customer,
-        UserRepository $repository,
-        SerializerInterface $serializer
-        ): JsonResponse
-    {
-        $users = $repository->FindAllByCustomer($customer);
-        $jsonUsers = $serializer->serialize($users, 'json', ['groups' => 'getUsers']);
-
-        return new JsonResponse(
-            $jsonUsers,
-            Response::HTTP_OK,
-            [],
-            true
-        );
-    }
-
-
     // Retreive the details of a user /* USER */
-    #[Route('/api/customer/{customer}/users/{user}', name: 'app_user.index', methods: ['GET'])]
+    #[Route('/api/v1/customer/{customer}/users/{user}', name: 'app_user.index', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
     #[OA\Get(
         summary: "Voir le détail d'un utilisateur"
@@ -106,16 +45,6 @@ class UserController extends AbstractController
         required: true,
         schema: new OA\Schema(type: "integer"),
         description: "ID de l'utilisateur"
-    )]
-    #[OA\RequestBody(
-        required: true,
-        content: new OA\JsonContent(
-            type: "object",
-            properties: [
-                new OA\Property(property: "customerID", type: "int", example: 1),
-                new OA\Property(property: "userID", type: "int", example: 1)
-            ]
-        )
     )]
     #[OA\Response(
         response: 200,
@@ -139,6 +68,7 @@ class UserController extends AbstractController
     )]
     #[OA\Tag(name: "Clients")]
     public function index(
+        Customer $customer,
         User $user,
         UserRepository $repository,
         SerializerInterface $serializer,
@@ -146,13 +76,28 @@ class UserController extends AbstractController
         ): JsonResponse
     {
         $idCache = "getUser-" . $user->getId();
-        
-        
-        $jsonUser = $cache->get($idCache, function (ItemInterface $item) use ($repository, $user, $serializer) {
+                
+        $jsonUser = $cache->get($idCache, function (ItemInterface $item) use ($repository, $customer, $user, $serializer) {
             $item->tag("userCache");
 
             $user = $repository->findOneByID($user);
-            return $serializer->serialize($user, 'json', ['groups' => 'getUsers']);
+
+            $user_id = $user->getId();
+            $user_email = $user->getEmail();
+            $user_roles = $user->getRoles();
+            $user_customer = $user->getCustomer();
+
+            $user_links = array('delete' => array('href' => '/api/v1/customer/' . $user_customer->getId() . '/users/' . $user_id));
+
+            $user_data = array(
+                'id' => $user_id,
+                'email' => $user_email,
+                'roles' => $user_roles,
+                'customer' => $user_customer,
+                '_links' => $user_links,
+            );
+    
+            return $serializer->serialize($user_data, 'json', ['groups' => 'getUsers']);
         });
 
         return new JsonResponse(
@@ -165,7 +110,7 @@ class UserController extends AbstractController
 
 
     // Create a new user /* USER */
-    #[Route('/api/customer/{customer}/users', name: 'app_user.create', methods: ['POST'])]
+    #[Route('/api/v1/customer/{customer}/users', name: 'app_user.create', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
     #[OA\Post(
         summary: "Ajouter un nouvel utilisateur"
@@ -235,7 +180,22 @@ class UserController extends AbstractController
         $em->persist($user);
         $em->flush();
 
-        $jsonUser = $serializer->serialize($user, 'json', ['groups' => 'getUser']);
+        $user_id = $user->getId();
+        $user_email = $user->getEmail();
+        $user_roles = $user->getRoles();
+        $user_customer = $user->getCustomer();
+
+        $user_links = array('self' => array('href' => '/api/v1/customer/' . $user_customer->getId() . '/users/' . $user_id));
+
+        $user_data = array(
+            'id' => $user_id,
+            'email' => $user_email,
+            'roles' => $user_roles,
+            'customer' => $user_customer,
+            '_links' => $user_links,
+        );
+
+        $jsonUser = $serializer->serialize($user_data, 'json', ['groups' => 'getUsers']);
 
         $locatation = $urlGenerator->generate('app_user.index', ['customer' => $user->getCustomer()->getId(), 'user' => $user->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
 
@@ -245,7 +205,7 @@ class UserController extends AbstractController
 
 
     // Delete a user /* USER */
-    #[Route('/api/customer/{customer}/users/{user}', name: 'app_user.delete', methods: ['DELETE'])]
+    #[Route('/api/v1/customer/{customer}/users/{user}', name: 'app_user.delete', methods: ['DELETE'])]
     #[IsGranted('ROLE_USER')]
     #[OA\Delete(
         summary: "Supprimer un utilisateur"
@@ -263,16 +223,6 @@ class UserController extends AbstractController
         required: true,
         schema: new OA\Schema(type: "integer"),
         description: "ID de l'utilisateur"
-    )]
-    #[OA\RequestBody(
-        required: true,
-        content: new OA\JsonContent(
-            type: "object",
-            properties: [
-                new OA\Property(property: "email", type: "string", example: "john.doe@example.com"),
-                new OA\Property(property: "password", type: "string", example: "password123")
-            ]
-        )
     )]
     #[OA\Response(
         response: 204,
