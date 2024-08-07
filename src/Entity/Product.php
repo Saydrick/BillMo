@@ -31,7 +31,7 @@ class Product
         max:255,
         minMessage: "La tailles du nom doit faire au moins {{ value }} caractère.",
         maxMessage: "La taille du nom ne doit pas dépasser {{ value }} caractères."
-        )]
+    )]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]

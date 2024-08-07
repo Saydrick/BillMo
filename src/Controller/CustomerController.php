@@ -42,19 +42,17 @@ class CustomerController extends AbstractController
     public function indexAll(
         CustomerRepository $repository,
         SerializerInterface $serializer
-        ): JsonResponse
-    {
+    ): JsonResponse {
         $customers = $repository->FindAll();
-        
+
         $customers_data = [];
 
-        foreach($customers as $customer)
-        {
+        foreach ($customers as $customer) {
             $customer_id = $customer->getId();
             $customer_name = $customer->getName();
 
             $customer_links = array('self' => array('href' => '/api/v1/customer/' . $customer_id . '/users'));
-    
+
             $customer_data[] = array(
                 'id' => $customer_id,
                 'name' => $customer_name,
@@ -110,25 +108,23 @@ class CustomerController extends AbstractController
         Customer $customer,
         UserRepository $repository,
         SerializerInterface $serializer
-        ): JsonResponse
-    {        
-        $users = $repository->FindAllByCustomer($customer);
+    ): JsonResponse {
+        $users = $repository->findAllByCustomer($customer);
 
         $user_data = [];
 
-        foreach($users as $user)
-        {
+        foreach ($users as $user) {
             $user_id = $user->getId();
             $user_email = $user->getEmail();
             $user_roles = $user->getRoles();
             $user_customer = $user->getCustomer();
-    
+
             $user_links = array(
                         'self' => array('href' => '/api/v1/customer/' . $customer->getId() . '/users/' . $user_id),
                         'create' => array('href' => '/api/v1/customer/' . $customer->getId() . '/users')
                     );
-    
-    
+
+
             $user_data[] = array(
                 'id' => $user_id,
                 'email' => $user_email,

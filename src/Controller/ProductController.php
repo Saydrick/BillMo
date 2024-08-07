@@ -44,8 +44,7 @@ class ProductController extends AbstractController
         ProductRepository $repository,
         SerializerInterface $serializer,
         TagAwareCacheInterface $cache
-        ): JsonResponse
-    {        
+    ): JsonResponse {
         $idCache = "Products";
 
         $jsonProducts = $cache->get($idCache, function (ItemInterface $item) use ($repository, $serializer) {
@@ -55,8 +54,7 @@ class ProductController extends AbstractController
 
             $product_data = [];
 
-            foreach($products as $product)
-            {    
+            foreach ($products as $product) {
                 $product_id = $product->getId();
                 $product_name = $product->getName();
                 $product_description = $product->getDescription();
@@ -72,7 +70,7 @@ class ProductController extends AbstractController
                     '_links' => $product_links,
                 );
             }
-    
+
             return $serializer->serialize($product_data, 'json', ['groups' => 'getProducts']);
         });
 
@@ -120,8 +118,7 @@ class ProductController extends AbstractController
         Product $product,
         SerializerInterface $serializer,
         TagAwareCacheInterface $cache
-        ): JsonResponse
-    {
+    ): JsonResponse {
         $idCache = "Product-" . $product->getId();
 
         $jsonProduct = $cache->get($idCache, function (ItemInterface $item) use ($product, $serializer) {
@@ -129,13 +126,12 @@ class ProductController extends AbstractController
 
             return $serializer->serialize($product, 'json', ['groups' => 'getProducts']);
         });
-        
+
         return new JsonResponse(
             $jsonProduct,
             Response::HTTP_OK,
             [],
             true
         );
-
     }
 }
