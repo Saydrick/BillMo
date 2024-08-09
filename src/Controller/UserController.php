@@ -258,4 +258,12 @@ class UserController extends AbstractController
             Response::HTTP_NO_CONTENT
         );
     }
+    
+
+    #[Route('/api/v1/test-error', name: 'test_error', methods: ['GET'])]
+    public function testError()
+    {
+        throw new \Exception('This is a test exception');
+        // return new JsonResponse(['status' => 404, 'message' => 'Not Found'], 404);
+    }
 }

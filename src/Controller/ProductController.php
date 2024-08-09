@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 
 class ProductController extends AbstractController
 {
@@ -21,6 +22,20 @@ class ProductController extends AbstractController
     #[IsGranted('ROLE_USER')]
     #[OA\Get(
         summary: "Voir la liste des produits"
+    )]
+    #[OA\Parameter(
+        name: "page",
+        in: "query",
+        required: true,
+        schema: new OA\Schema(type: "integer"),
+        description: "Numéro de page"
+    )]
+    #[OA\Parameter(
+        name: "limit",
+        in: "query",
+        required: true,
+        schema: new OA\Schema(type: "integer"),
+        description: "Nombre de résultats"
     )]
     #[OA\Response(
         response: 200,
@@ -43,14 +58,18 @@ class ProductController extends AbstractController
     public function indexAll(
         ProductRepository $repository,
         SerializerInterface $serializer,
-        TagAwareCacheInterface $cache
+        TagAwareCacheInterface $cache,
+        Request $request
     ): JsonResponse {
-        $idCache = "Products";
+        $page = $request->query->get('page', 1);
+        $limit = $request->query->get('limit', 4);
+        
+        $idCache = "Products-" . $page . "-" . $limit;
 
-        $jsonProducts = $cache->get($idCache, function (ItemInterface $item) use ($repository, $serializer) {
+        $jsonProducts = $cache->get($idCache, function (ItemInterface $item) use ($repository, $serializer, $page, $limit) {
             $item->tag("productsCache");
 
-            $products = $repository->findAll();
+            $products = $repository->findAllProducts($page, $limit);
 
             $product_data = [];
 

@@ -1,11 +1,11 @@
-<?php
+<?php 
 
 namespace App\EventSubscriber;
 
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class ExceptionSubscriber implements EventSubscriberInterface
 {
@@ -13,27 +13,31 @@ class ExceptionSubscriber implements EventSubscriberInterface
     {
         $exception = $event->getThrowable();
 
-        if ($exception instanceof HttpException) {
+        if ($exception instanceof HttpExceptionInterface) {
             $data = [
                 'status' => $exception->getStatusCode(),
-                'message' => $exception->getMessage()
+                'message' => $exception->getMessage(),
             ];
-
-            $event->setResponse(new JsonResponse($data));
+            $statusCode = $exception->getStatusCode();
         } else {
             $data = [
-              'status' => 500,
-              'message' => $exception->getMessage()
+                'status' => 500,
+                'message' => 'An unexpected error occurred',
             ];
-
-            $event->setResponse(new JsonResponse($data));
+            $statusCode = 500;
         }
+
+        $response = new JsonResponse($data);
+        $response->setStatusCode($statusCode);
+        $response->headers->set('Content-Type', 'application/json'); // Forcer le JSON
+
+        $event->setResponse($response);
     }
 
     public static function getSubscribedEvents(): array
     {
         return [
-            'Kernel.exception' => 'onKernelException',
+            'kernel.exception' => ['onKernelException', 255], // Priorité élevée
         ];
     }
 }
