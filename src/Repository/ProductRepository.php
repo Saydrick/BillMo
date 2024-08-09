@@ -19,10 +19,12 @@ class ProductRepository extends ServiceEntityRepository
     /**
     * @return Product[] Returns an array of Product objects
     */
-    public function findAllProducts(): array
+    public function findAllProducts(int $page, int $limit): array
     {
         return $this->createQueryBuilder('p')
             ->orderBy('p.id', 'ASC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
             ->getQuery()
             ->getResult()
         ;
